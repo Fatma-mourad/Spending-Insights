@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contextual Spending Insights — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500&family=Syne:wght@800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0d;--ph:#0f0f11;--card:#1a1a1d;--line:#2a2a2f;--tx:#f2f1ee;--mu:#85858d;--g:#1fb77a;--a:#f5a524;--r:#e5453b;--b:#4a90e2;--c:var(--a);--d:2.8s;
+--mono:'DM Mono',ui-monospace,Menlo,monospace;--sans:'Inter',system-ui,sans-serif;color-scheme:dark;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:400 14px/1.4 var(--sans);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+button:focus-visible{outline:2px solid var(--a);outline-offset:2px;border-radius:8px}
+.phone{position:relative;width:min(400px,100vw);height:min(850px,calc(100dvh - 40px));background:var(--ph);border-radius:34px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px #000}
+@media(max-width:480px){.phone{height:100dvh;border-radius:0;border:0}.hint{display:none}}
+.hint{font:400 12px var(--mono);color:var(--mu)}
+.scr{position:absolute;inset:0 0 74px;padding:22px 20px 16px;overflow-y:auto;scrollbar-width:none;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.scr::-webkit-scrollbar{display:none}
+#pulse.off{transform:translateX(-30%);opacity:0;pointer-events:none}
+#dive{transform:translateX(100%);opacity:0;pointer-events:none}
+#dive.on{transform:none;opacity:1;pointer-events:auto}
+.hd{display:flex;justify-content:space-between;align-items:flex-start}
+.hd b{font:500 16px var(--sans);display:block}
+.mu{color:var(--mu);font-size:13px}
+.day{font:400 14px var(--mono);color:#b0b0b6;display:flex;align-items:center;gap:10px}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6a5cff,#3f7bff);display:grid;place-items:center;font:500 11px var(--mono);color:#fff}
+
+/* orb */
+.orbw{position:relative;width:250px;height:250px;margin:22px auto 20px;display:block}
+.orbw svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.core{position:absolute;inset:34px;border-radius:50%;display:grid;place-content:center;text-align:center;
+ background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--c) 42%,#000),color-mix(in srgb,var(--c) 26%,#0f0f11));
+ animation:br var(--d) ease-in-out infinite;transition:background .6s}
+@keyframes br{0%,100%{transform:scale(1);box-shadow:0 0 30px color-mix(in srgb,var(--c) 25%,transparent)}50%{transform:scale(1.06);box-shadow:0 0 70px color-mix(in srgb,var(--c) 55%,transparent)}}
+.core b{font:500 26px var(--mono)}.core span{font:500 12px var(--mono);display:block}.core small{font:400 12px var(--mono);color:#ddd}
+#prog{transition:stroke .5s;filter:drop-shadow(0 0 6px var(--c))}
+
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;display:block;width:100%;border:1px solid transparent;transition:border-color .2s,transform .15s}
+.card:active{transform:scale(.985)}
+button.card:hover{border-color:var(--line)}
+.tag{display:inline-block;font:500 10px var(--mono);padding:3px 7px;border-radius:4px;color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);margin-bottom:12px;transition:all .5s}
+.ins{font:400 14px/1.6 var(--mono)}.ins b{color:var(--c);font-weight:400;transition:color .5s}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.two .card{margin:0;padding:12px}
+.lab{font:400 10px var(--mono);letter-spacing:.06em}
+.bar{position:relative;height:7px;border-radius:5px;background:#3a3a40;margin:8px 0 7px;--c:var(--b)}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;border-radius:5px;background:var(--c)}
+.bar u{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:#e8e8e8;transition:all .2s}
+.bar u.fl{animation:fl .7s ease-out}
+@keyframes fl{0%{transform:scaleY(1);box-shadow:0 0 0 #fff}30%{transform:scaleY(1.9);box-shadow:0 0 12px #fff;background:#fff}100%{transform:scaleY(1)}}
+.sm{font:400 10px var(--mono);color:var(--mu)}
+.ok{color:var(--g)}.bad{color:var(--r)}
+.link{display:flex;justify-content:space-between;align-items:center;border:1px solid #cfcfd4;border-radius:12px;padding:15px 14px;font:500 15px var(--sans);width:100%;margin-top:4px}
+.link span{font:400 14px var(--mono);color:var(--mu);display:flex;gap:10px;align-items:center}
+.link svg{animation:nudge 2s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(4px)}}
+
+/* nav */
+nav{position:absolute;left:0;right:0;bottom:0;height:74px;background:#141416;display:flex;justify-content:space-around;align-items:center;padding-bottom:6px}
+nav button{display:flex;flex-direction:column;align-items:center;gap:5px;font:400 10px var(--mono);color:var(--mu);width:25%;padding:6px 0;text-align:center}
+nav button.on{color:#fff;font-weight:500}
+nav svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.6}
+
+/* dive */
+.back{display:flex;align-items:center;gap:10px;font:400 13px var(--mono);color:var(--mu)}
+.back b{font:500 16px var(--mono);color:var(--tx);font-weight:500;margin-left:6px}
+.sec{font:400 12px var(--sans);color:var(--mu);letter-spacing:.04em;margin:16px 0 10px}
+.alert{background:#2a1214;border:1px solid #7a2a2a;border-radius:12px;padding:16px}
+.alert small{font:500 10px var(--mono);color:var(--r);display:block;margin-bottom:10px}
+.alert p{margin:0;color:#c9b4b4;font-size:13px}.alert b{font:500 15px var(--mono);color:var(--r)}
+.cat{padding:14px}
+.cat .t{display:flex;align-items:center;gap:10px;font:500 14px var(--mono)}
+.cat .t em{font:400 10px var(--mono);font-style:normal;padding:2px 6px;border-radius:4px;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+.cat .t strong{margin-left:auto;font:500 15px var(--mono);color:var(--c)}
+.cat svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:1.6}
+.cat .bar{margin:12px 0 9px;height:8px;--c:inherit}
+.cat .sm{display:flex;justify-content:space-between}
+.more{max-height:0;overflow:hidden;transition:max-height .35s;font:400 12px/1.6 var(--mono);color:#b5b5bb}
+.cat.open .more{max-height:80px;padding-top:10px}
+.tx{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font:400 14px var(--sans)}
+.tx small{display:block;color:var(--mu);font-size:12px}.tx b{font:500 14px var(--mono);color:var(--c)}
+
+/* sheet */
+.veil{position:absolute;inset:0;background:#0009;opacity:0;pointer-events:none;transition:opacity .3s;z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#1b1b1f;border-radius:22px 22px 0 0;padding:22px 20px 28px;transform:translateY(105%);transition:transform .4s cubic-bezier(.2,.8,.2,1);z-index:6}
+.on-sheet .veil{opacity:1;pointer-events:auto}.on-sheet .sheet{transform:none}
+.sheet h3{font:500 15px/1.4 var(--mono);margin:0 0 6px}
+.sheet p{margin:0 0 14px;color:#b5b5bb;font-size:13px}
+.chip{display:flex;justify-content:space-between;align-items:center;width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;font:400 13px var(--mono)}
+.chip.ai{border-color:#1d6b4e;background:#10261d;color:var(--g)}.chip.ai::after{content:"AI-Powered";font-size:10px;color:#6fbf9c}
+.chip:hover{border-color:#555}
+@media(prefers-reduced-motion:reduce){.core,.link svg{animation:none}.scr,.sheet{transition:none}}
+</style>
+</head>
+<body>
+<div class="phone" id="ph">
+
+<section class="scr" id="pulse" aria-label="The Pulse">
+ <div class="hd"><div><b>June 2025</b><span class="mu">THE PULSE</span></div><div class="day">Day 15/30 <span class="av">FM</span></div></div>
+ <button class="orbw" id="orb" aria-label="Spending status. Tap to preview other states">
+  <svg viewBox="0 0 250 250"><circle cx="125" cy="125" r="116" fill="none" stroke="#5a5a5e" stroke-width="5"/><circle id="prog" cx="125" cy="125" r="116" fill="none" stroke="#8a8a8e" stroke-width="5" stroke-linecap="round" stroke-dasharray="729" stroke-dashoffset="729"/></svg>
+  <div class="core"><b id="amt">$0</b><span>Spent</span><small>Of $3,200 Budget</small></div>
+ </button>
+ <button class="card" id="heads" style="--c:var(--a)"><span class="tag" id="tag">HEADS UP</span><div class="ins" id="insText">Dining is running at <b>2.1×</b> your usual pace — at this rate, you’ll overshoot by <b>$152</b> before month-end.</div></button>
+ <div class="two">
+  <button class="card" id="needs"><div class="lab" style="color:var(--b)">NEEDS (FIXED)</div><div class="bar" style="--c:var(--b)" data-f=".8"><i></i><u></u></div><div class="sm">$1,120 / $1,400</div><div class="sm ok" style="margin-top:6px">On Pace</div></button>
+  <button class="card" id="wants"><div class="lab" style="color:var(--a)">WANTS (FLEX)</div><div class="bar" style="--c:var(--r)" data-f="1"><i></i><u></u></div><div class="sm">$1,020 / $800</div><div class="sm bad" style="margin-top:6px">127.5% of budget</div></button>
+ </div>
+ <button class="link" id="go">See What’s Driving This <span><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M9 2v13M3.5 10 9 15.5 14.5 10"/></svg>Deep Dive</span></button>
+</section>
+
+<section class="scr" id="dive" aria-label="The Deep Dive">
+ <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#aaa" stroke-width="1.5"><path d="M14 8H2M7 3 2 8l5 5"/></svg>THE PULSE <b>Discretionary</b></button>
+ <div class="sec" style="margin-top:14px">THE DEEP DIVE</div>
+ <div class="alert"><small>PACE ALERT</small><p>15 days left. You’re <b>$220 Over Pace</b> in Wants. Here’s the root cause.</p></div>
+ <div class="sec">CATEGORY PACE</div>
+ <div id="cats"></div>
+ <div class="tx" style="--c:var(--r)"><div>Nobu Restaurant<small>Jun 12 · Dining</small></div><b>$89</b></div>
+ <div class="tx" style="--c:var(--a)"><div>Emirates Airlines<small>Jun 11 · Travel</small></div><b>$310</b></div>
+</section>
+
+<nav id="nav"></nav>
+<div class="veil" id="veil"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><h3 id="sh"></h3><p id="sp"></p><div id="sc"></div></div>
+</div>
+<div class="hint">Tap the orb, the cards and the bars to explore</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const ST={g:{c:'#1fb77a',v:'var(--g)',d:'4s',tag:'ON TRACK',t:'You have breathing room. Spending is <b>behind</b> the month’s pace.'},
+ a:{c:'#f5a524',v:'var(--a)',d:'2.8s',tag:'HEADS UP',t:'Dining is running at <b>2.1×</b> your usual pace — at this rate, you’ll overshoot by <b>$152</b> before month-end.'},
+ r:{c:'#e5453b',v:'var(--r)',d:'2.2s',tag:'ACT NOW',t:'Wants are <b>127.5%</b> of budget. Pause flexible spending to get back on pace.'}};
+let cur='a';
+function setState(k){cur=k;const s=ST[k];const r=document.documentElement.style;r.setProperty('--c',s.v);r.setProperty('--d',s.d);
+ $('#heads').style.setProperty('--c',s.v);$('#tag').textContent=s.tag;$('#insText').innerHTML=s.t;
+ if(prog.style.stroke!=='rgb(138, 138, 142)')prog.style.stroke=s.c}
+const prog=$('#prog'),C=729,P=2140/3200,ease=t=>1-Math.pow(1-t,3);
+function runArc(){prog.style.stroke='#8a8a8e';prog.style.strokeDashoffset=C;let flipped=false,t0=null;
+ (function f(t){if(!t0)t0=t;const k=Math.min((t-t0)/1700,1),p=ease(k)*P;
+  prog.style.strokeDashoffset=C*(1-p);$('#amt').textContent='$'+Math.round(2140*ease(k)).toLocaleString('en-US');
+  if(p>=.5&&!flipped){flipped=true;prog.style.stroke=ST[cur].c}
+  if(k<1)requestAnimationFrame(f)})(performance.now())}
+function runBars(root){root.querySelectorAll('.bar').forEach((b,i)=>{const f=+b.dataset.f,i_=b.querySelector('i'),u=b.querySelector('u');
+ u.classList.remove('fl');i_.style.width='0%';let t0=null,hit=false;const delay=i*120;
+ (function s(t){if(!t0)t0=t;const k=Math.max(0,Math.min((t-t0-delay)/1000,1)),w=ease(k)*f;i_.style.width=w*100+'%';
+  if(w>=.5&&!hit){hit=true;u.classList.add('fl')}if(k<1)requestAnimationFrame(s)})(performance.now())})}
+
+const IC={fork:'<path d="M7 3v7M10 3v7M4 3v7a3 3 0 0 0 3 3v8M16 3c-2 2-2 6 0 8v10"/>',cart:'<path d="M2 3h3l3 12h11l2-8H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>',film:'<path d="M3 9h18v11H3zM3 9l2-5 16 3"/><path d="M8 9l2-4M14 9l2-4"/>',plane:'<path d="M21 3 3 11l7 3 3 7zM10 14l11-11"/>'};
+const cats=[['Dining','fork','2.1× Pace','r',340,280,10,1,'$60 over','Dining is the root cause: 10 transactions against a $280 budget. Biggest single charge: Nobu, $89.'],
+['Shopping','cart','0.9× Pace','g',340,200,4,1,'$60 over','4 transactions. Pace is calm, but the total already passes the $200 budget.'],
+['Entertainment','film','0.75× Pace','g',90,120,3,.75,'$30 under','3 transactions. Comfortably under budget.'],
+['Travel','plane','0.75× Pace','a',410,300,2,1,'$110 over','2 transactions. Emirates Airlines, $310, is most of it.']];
+$('#cats').innerHTML=cats.map(c=>`<button class="card cat" style="--c:var(--${c[3]})"><div class="t"><svg viewBox="0 0 24 24">${IC[c[1]]}</svg>${c[0]}<em>${c[2]}</em><strong>$${c[4]}</strong></div><div class="bar" style="background:#3a3a40" data-f="${c[7]}"><i style="background:var(--c)"></i><u></u></div><div class="sm"><span>Budget $${c[5]} · ${c[6]} Transactions</span><span style="color:var(--c)">${c[8]}</span></div><div class="more">${c[9]}</div></button>`).join('');
+document.querySelectorAll('.cat').forEach(e=>e.onclick=()=>{const o=e.classList.contains('open');document.querySelectorAll('.cat').forEach(x=>x.classList.remove('open'));if(!o)e.classList.add('open')});
+
+const NAV=[['pulse','Pulse','<circle cx="13" cy="13" r="10"/><circle cx="13" cy="13" r="5.5"/><circle cx="13" cy="13" r="1.8" fill="currentColor"/>'],['dive','Deep Dive','<path d="M10 7h12M10 13h12M10 19h9M4 7h2M4 13h2M4 19h2"/>'],['b','Budget','<circle cx="13" cy="13" r="10"/><path d="M16 9.5c-1-1.2-5-1.3-5 1.2 0 3 5 1.6 5 4.3 0 2.4-4.2 2.6-5.4 1M13 7.5v11"/>'],['g','Goal','<circle cx="12" cy="14" r="8"/><circle cx="12" cy="14" r="3.5"/><path d="M13 13l8-8M17 4v4h4"/>']];
+$('#nav').innerHTML=NAV.map(n=>`<button data-k="${n[0]}"><svg viewBox="0 0 26 26">${n[2]}</svg>${n[1]}</button>`).join('');
+function show(k){const d=k==='dive';$('#pulse').classList.toggle('off',d);$('#dive').classList.toggle('on',d);
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+ (d?$('#dive'):$('#pulse')).scrollTop=0;
+ if(d){runBars($('#dive'))}else{runArc();runBars($('#pulse'))}}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(b.dataset.k==='pulse'||b.dataset.k==='dive')show(b.dataset.k)});
+$('#go').onclick=()=>show('dive');$('#back').onclick=()=>show('pulse');
+
+const SH={heads:['Why is dining 2.1×?','Spending on dining is well above your usual month.',[['Show me the root cause',()=>{close();show('dive')}],['Suggest a Recovery Plan',null,1]]],
+ wants:['Wants are 127.5% of budget','$1,020 spent against an $800 budget with 15 days left.',[['Which Wants drove this?',()=>{close();show('dive')}],['Suggest a Recovery Plan',null,1]]],
+ needs:['Needs are on pace','Fixed costs are stable, so nothing needs to change.',[['What counts as a Need?',()=>say('Rent, bills and other fixed costs that repeat every month.')]]]};
+function open_(k){const [h,p,ch]=SH[k];$('#sh').textContent=h;$('#sp').textContent=p;
+ $('#sc').innerHTML=ch.map((c,i)=>`<button class="chip ${c[2]?'ai':''}" data-i="${i}">${c[0]}</button>`).join('');
+ $('#sc').querySelectorAll('.chip').forEach((b,i)=>b.onclick=()=>{const c=ch[i];c[1]?c[1]():say('Bring Dining back to your usual pace and the projected $152 overshoot disappears. Everything else is already on track.')});
+ $('#ph').classList.add('on-sheet')}
+function say(t){$('#sp').textContent=t}
+function close(){$('#ph').classList.remove('on-sheet')}
+$('#veil').onclick=close;document.addEventListener('keydown',e=>e.key==='Escape'&&close());
+$('#heads').onclick=()=>open_('heads');$('#wants').onclick=()=>open_('wants');$('#needs').onclick=()=>open_('needs');
+$('#orb').onclick=()=>{const o=['a','r','g'];setState(o[(o.indexOf(cur)+1)%3])};
+
+setState('a');show('pulse');
+</script>
+</body>
+</html>
